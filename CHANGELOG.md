@@ -1,5 +1,11 @@
 # Nhật ký thay đổi
 
+## v1.0.1 — 2026-10-08
+
+### Sửa lỗi
+- App bị dừng với lỗi `System.ArgumentException: 使用されたパラメーターが有効ではありません` (tham số không hợp lệ) ở `Font.GetHeight`, khi đổi giao diện, đổi cỡ chữ hoặc mở lại bảng F1.
+  Nguyên nhân: khi gán một font "bằng" font cũ (cùng tên, cỡ, kiểu), .NET Framework giữ nguyên đối tượng font cũ trong ô soạn thảo, mà app lại giải phóng chính đối tượng đó. Nay mỗi font chỉ được tạo một lần và dùng lại, không giải phóng thủ công nữa.
+
 ## v1.0.0 — 2026-10-08
 
 Bản phát hành đầu tiên của VniTyping Desktop.

@@ -84,9 +84,7 @@ namespace VniTyping.UI
             BackColor = t.Field;
             box.BackColor = t.Field;
             box.ForeColor = t.Ink;
-            var old = box.Font;
             box.Font = Gfx.MakeFont("Consolas", uiFont.SizeInPoints, FontStyle.Regular);
-            if (old != null && old != Control.DefaultFont) old.Dispose();
         }
 
         public void SetMode(int m)

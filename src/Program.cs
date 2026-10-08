@@ -10,9 +10,9 @@ using VniTyping.UI;
 [assembly: AssemblyDescription("Bộ gõ tiếng Việt portable cho Windows")]
 [assembly: AssemblyProduct("VniTyping")]
 [assembly: AssemblyCopyright("Copyright © 2026 Nguyễn Thành Đạt · GPL v2+")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: AssemblyInformationalVersion("1.0.0")]
+[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("1.0.1.0")]
+[assembly: AssemblyInformationalVersion("1.0.1")]
 
 namespace VniTyping
 {

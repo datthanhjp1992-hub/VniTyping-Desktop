@@ -78,10 +78,26 @@ namespace VniTyping.UI
             }
         }
 
+        private static readonly System.Collections.Generic.Dictionary<string, Font> fontCache =
+            new System.Collections.Generic.Dictionary<string, Font>();
+
+        /// <summary>
+        /// Font dùng chung, tạo một lần cho mỗi (tên, cỡ, kiểu) và KHÔNG bao giờ dispose.
+        /// Lý do: trên .NET Framework, gán control.Font một font "bằng" font cũ (cùng tên/cỡ/kiểu)
+        /// thì control vẫn giữ đối tượng cũ; nếu dispose đối tượng cũ, control sẽ lỗi
+        /// ArgumentException ở lần dùng font sau đó.
+        /// </summary>
         public static Font MakeFont(string family, float size, FontStyle style)
         {
             if (!FontExists(family)) family = FontExists("Segoe UI") ? "Segoe UI" : SystemFonts.MessageBoxFont.FontFamily.Name;
-            return new Font(family, size, style);
+            string key = family + "|" + size.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" + (int)style;
+            Font f;
+            if (!fontCache.TryGetValue(key, out f))
+            {
+                f = new Font(family, size, style);
+                fontCache[key] = f;
+            }
+            return f;
         }
     }
 

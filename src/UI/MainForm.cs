@@ -271,7 +271,6 @@ namespace VniTyping.UI
             theme = t;
             settings.Theme = t.Id;
 
-            var oldFonts = new[] { uiFont, uiBold, labelFont, titleFont, editorFont };
             uiFont = Gfx.MakeFont(t.UiFont, 9f, FontStyle.Regular);
             uiBold = Gfx.MakeFont(t.UiFont, 9f, FontStyle.Bold);
             labelFont = t.MonoLabels ? Gfx.MakeFont("Consolas", 8.5f, FontStyle.Bold) : Gfx.MakeFont(t.UiFont, 8.25f, FontStyle.Bold);
@@ -298,8 +297,6 @@ namespace VniTyping.UI
             DoLayout();
             Invalidate(true);
 
-            foreach (var f in oldFonts)
-                if (f != null) f.Dispose();
             if (helpForm != null && !helpForm.IsDisposed) helpForm.ApplyTheme(t, uiFont);
         }
 
@@ -379,10 +376,8 @@ namespace VniTyping.UI
         {
             float size = delta == 0 ? Settings.DefaultFontSize : settings.FontSize + delta;
             settings.FontSize = Math.Max(8f, Math.Min(24f, size));
-            var old = editorFont;
             editorFont = Gfx.MakeFont(theme.EditorFont, settings.FontSize, FontStyle.Regular);
             editor.Font = editorFont;
-            if (old != null) old.Dispose();
             QueueScrollbarUpdate();
             Flash("Cỡ chữ " + settings.FontSize + "pt", true);
         }
