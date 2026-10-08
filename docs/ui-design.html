@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VniTyping Desktop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: bản duyệt thiết kế — cửa sổ mẫu chạy thật bên trái, chú thích đánh số bên phải, chi tiết hành vi bên dưới */
+:root{
+  --bg:#eef1f4;          /* nền trang, xám ngả xanh nhẹ như desktop Windows */
+  --surface:#ffffff;
+  --ink:#1b2430;
+  --muted:#5f6b78;
+  --line:#d5dbe2;
+  --accent:#1f7a6c;      /* xanh "Sen" lấy từ bản web để giữ nhận diện */
+  --accent-ink:#ffffff;
+  --accent-soft:#e2f0ec;
+  --win-bg:#f7f8fa;      /* nền cửa sổ app */
+  --win-title:#eceff3;
+  --win-field:#ffffff;
+  --win-shadow:0 1px 2px rgba(20,30,40,.08),0 18px 40px -18px rgba(20,30,40,.35);
+  --danger:#b4443a;
+  --font-page:"Be Vietnam Pro","Segoe UI",system-ui,sans-serif;
+  --font-win:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+  --font-mono:ui-monospace,Consolas,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14181d;--surface:#1c2228;--ink:#e6eaee;--muted:#9aa5b1;--line:#2e363f;
+  --accent:#4cb5a3;--accent-ink:#0d1a17;--accent-soft:#1d332f;
+  --win-bg:#20262d;--win-title:#191e24;--win-field:#151a1f;
+  --win-shadow:0 1px 2px rgba(0,0,0,.4),0 18px 40px -18px rgba(0,0,0,.8);
+  --danger:#e07a6e;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14181d;--surface:#1c2228;--ink:#e6eaee;--muted:#9aa5b1;--line:#2e363f;
+  --accent:#4cb5a3;--accent-ink:#0d1a17;--accent-soft:#1d332f;
+  --win-bg:#20262d;--win-title:#191e24;--win-field:#151a1f;
+  --win-shadow:0 1px 2px rgba(0,0,0,.4),0 18px 40px -18px rgba(0,0,0,.8);
+  --danger:#e07a6e;color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-page);font-size:15px;line-height:1.6;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:32px 56px;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.25}
+h1{font-size:30px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:20px;font-weight:600}
+h3{font-size:15px;font-weight:600}
+p{margin:0}
+.lede{color:var(--muted);max-width:62ch}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+header{display:flex;flex-direction:column;gap:8px}
+section{display:flex;flex-direction:column;gap:16px}
+code,kbd{font-family:var(--font-mono);font-size:.88em}
+kbd{background:var(--surface);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;white-space:nowrap}
+
+/* ---------- Hero: mockup + annotations ---------- */
+.stage{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:40px;align-items:start}
+@media (max-width:820px){.stage{grid-template-columns:minmax(0,1fr)}}
+.desk{background:repeating-linear-gradient(135deg,transparent 0 14px,color-mix(in srgb,var(--line) 35%,transparent) 14px 15px);border:1px dashed var(--line);border-radius:14px;padding:28px 18px;display:flex;justify-content:center}
+.notes{display:flex;flex-direction:column;gap:14px;counter-reset:n}
+.note{display:grid;grid-template-columns:26px minmax(0,1fr);gap:12px;align-items:start}
+.pin{width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:700;display:grid;place-items:center;font-family:var(--font-page)}
+.note p{color:var(--muted);font-size:14px}
+.note h3{margin-bottom:2px}
+
+/* ---------- The app window (WinForms mock) ---------- */
+.win{width:100%;max-width:360px;background:var(--win-bg);border:1px solid var(--line);border-radius:8px;box-shadow:var(--win-shadow);font-family:var(--font-win);font-size:13px;color:var(--ink);position:relative;overflow:visible}
+.tb{display:flex;align-items:center;height:32px;background:var(--win-title);border-radius:8px 8px 0 0;padding-left:10px;user-select:none;position:relative}
+.tb .logo{width:16px;height:16px;border-radius:4px;background:var(--accent);color:var(--accent-ink);font-size:10px;font-weight:700;display:grid;place-items:center;margin-right:8px}
+.tb .name{font-size:12px;flex:1}
+.tb button{width:40px;height:32px;border:0;background:transparent;color:var(--ink);cursor:pointer;display:grid;place-items:center;font:inherit}
+.tb button:hover{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.tb .close:hover{background:#c42b1c;color:#fff;border-top-right-radius:8px}
+.tb .pinbtn[aria-pressed="true"]{color:var(--accent)}
+.body{padding:10px;display:flex;flex-direction:column;gap:8px}
+.modes{display:flex;gap:2px;background:color-mix(in srgb,var(--ink) 6%,transparent);padding:2px;border-radius:6px}
+.modes button{flex:1;border:0;background:transparent;color:var(--muted);font:600 12px var(--font-win);padding:5px 0;border-radius:4px;cursor:pointer}
+.modes button.on{background:var(--win-field);color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.modes button.on.off{color:var(--muted)}
+#editor{width:100%;height:150px;resize:none;border:1px solid var(--line);border-bottom:2px solid var(--line);border-radius:5px;background:var(--win-field);color:var(--ink);font:14px/1.5 var(--font-win);padding:8px 10px;outline:none}
+#editor:focus{border-bottom-color:var(--accent)}
+.foot{display:flex;align-items:center;gap:6px}
+.foot .status{flex:1;color:var(--muted);font-size:12px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foot .status.ok{color:var(--accent)}
+.wbtn{border:1px solid var(--line);background:var(--win-field);color:var(--ink);font:12px var(--font-win);padding:5px 12px;border-radius:4px;cursor:pointer}
+.wbtn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.wbtn:focus-visible,.modes button:focus-visible,.tb button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.menu{position:absolute;top:30px;right:84px;width:232px;background:var(--win-field);border:1px solid var(--line);border-radius:6px;box-shadow:var(--win-shadow);padding:4px;z-index:5;font-size:12.5px}
+.menu .item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;cursor:pointer}
+.menu .item:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.menu .chk{width:14px;text-align:center;color:var(--accent);font-weight:700}
+.menu .sc{margin-left:auto;color:var(--muted);font-size:11.5px}
+.menu hr{border:0;border-top:1px solid var(--line);margin:4px 2px}
+.tag{position:absolute;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:700 11px var(--font-page);display:grid;place-items:center;box-shadow:0 0 0 3px var(--bg);pointer-events:none;z-index:6}
+.hint{font-size:12.5px;color:var(--muted);text-align:center}
+
+/* ---------- Secondary states ---------- */
+.states{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.state{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.state p{color:var(--muted);font-size:13.5px}
+.mini{width:100%;background:var(--win-bg);border:1px solid var(--line);border-radius:6px;font-family:var(--font-win);font-size:12px;overflow:hidden}
+.mini .tb{height:26px;border-radius:0}
+.mini .tb .name{font-size:11px}
+.mini .tb span.ctl{width:28px;text-align:center;color:var(--muted)}
+.mini .in{padding:8px;display:flex;flex-direction:column;gap:6px}
+.mini .field{background:var(--win-field);border:1px solid var(--line);border-radius:4px;padding:6px 8px;min-height:44px;color:var(--ink)}
+.mini .row{display:flex;gap:6px;align-items:center}
+.mini .row .s{flex:1;color:var(--muted)}
+.mini .row .s.ok{color:var(--accent)}
+.tray{display:flex;align-items:center;justify-content:flex-end;gap:10px;background:var(--win-title);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font:12px var(--font-win);color:var(--muted)}
+.tray .ico{width:18px;height:18px;border-radius:4px;background:var(--accent);color:var(--accent-ink);font-size:10px;font-weight:700;display:grid;place-items:center}
+.tray .ico.off{background:var(--muted)}
+.bubble{background:var(--win-field);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:12px var(--font-win);display:flex;flex-direction:column;gap:2px;box-shadow:var(--win-shadow)}
+.bubble div{padding:3px 6px}
+
+/* ---------- Tables ---------- */
+.tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.k{white-space:nowrap}
+
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:14px;flex:1 1 170px;min-width:0}
+.step b{display:block;font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.04em}
+.arrow{color:var(--muted)}
+@media (max-width:640px){.arrow{display:none}}
+
+.qs{display:flex;flex-direction:column;gap:10px}
+.q{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:12px 16px}
+.q p{color:var(--muted);font-size:14px}
+.spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.spec div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.spec span{font-size:12px;color:var(--muted)}
+.spec strong{font-weight:600;font-variant-numeric:tabular-nums}
+/* ---------- App themes: only re-scope tokens inside app surfaces ---------- */
+[data-wt="sen"]{--win-bg:#f5f7f6;--win-title:#e7edea;--win-field:#ffffff;--ink:#1c2b33;--muted:#687784;--line:#d3ddd9;--accent:#1f7a6c;--accent-ink:#ffffff;--font-win:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
+[data-wt="giay"]{--win-bg:#eee5d2;--win-title:#e2d4b5;--win-field:#faf6ea;--ink:#2b2620;--muted:#7a6d57;--line:#cfbd93;--accent:#9c3b2e;--accent-ink:#ffffff;--font-win:Georgia,"Times New Roman",serif}
+[data-wt="dem"]{--win-bg:#1a2025;--win-title:#12161a;--win-field:#12161a;--ink:#e7e4dc;--muted:#8b959d;--line:#2e373e;--accent:#c9a24b;--accent-ink:#12161a;--font-win:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
+[data-wt="neon"]{--win-bg:#241a3d;--win-title:#1c1030;--win-field:#1c1030;--ink:#f4eefc;--muted:#a794c9;--line:#3d2c60;--accent:#ff3d81;--accent-ink:#ffffff;--font-win:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
+[data-wt="phuong"]{--win-bg:#fff8f0;--win-title:#fde6d4;--win-field:#ffffff;--ink:#3a1f14;--muted:#8a6352;--line:#f0cdb6;--accent:#d9481c;--accent-ink:#ffffff;--font-win:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
+[data-wt="phuong"] .tb{border-bottom:2px solid #2f8a3c}
+[data-wt="daodao"]{--win-bg:#fdf3f6;--win-title:#f8e1e9;--win-field:#ffffff;--ink:#3b2530;--muted:#8d6878;--line:#efcfdb;--accent:#c2456e;--accent-ink:#ffffff;--font-win:"Yu Gothic UI","Segoe UI",system-ui,sans-serif}
+[data-wt="daodao"] .modes{background:#f6dce6}
+[data-wt="halong"]{--win-bg:#123138;--win-title:#0c2328;--win-field:#0c2328;--ink:#dff3ef;--muted:#86aaa6;--line:#22474f;--accent:#3fc1b0;--accent-ink:#06201c;--font-win:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
+
+[data-wt="caphe"]{--win-bg:#e9dccb;--win-title:#d9c5ab;--win-field:#f5ede2;--ink:#2e1f14;--muted:#76604c;--line:#c9b292;--accent:#6b4426;--accent-ink:#f5ede2;--font-win:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
+
+[data-wt="tuongphan"]{--win-bg:#000000;--win-title:#000000;--win-field:#000000;--ink:#ffffff;--muted:#d0d0d0;--line:#ffffff;--accent:#ffd400;--accent-ink:#000000;--font-win:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
+[data-wt="tuongphan"] #editor,[data-wt="tuongphan"] .wbtn{border-width:2px}[data-wt="tuongphan"] .modes button.on{outline:2px solid #ffd400}
+[data-wt="dem"] .modes button,[data-wt="dem"] .tb .name{font-family:var(--font-mono);letter-spacing:.04em}
+[data-wt="neon"] .wbtn.primary,[data-wt="neon"] .modes button.on{box-shadow:0 0 12px rgba(255,61,129,.55)}
+.win,.mini,.bubble,.tray{color:var(--ink)}
+.menu .themes-row{display:flex;flex-wrap:wrap;gap:6px;padding:4px 8px 8px 30px}
+.sw{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;background:var(--c1);box-shadow:inset -7px -7px 0 0 var(--c2)}
+.sw[aria-pressed="true"]{border-color:var(--ink)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:16px}
+.tcard{background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;cursor:pointer;text-align:left;font:inherit;color:var(--ink)}
+.tcard[aria-pressed="true"]{border-color:var(--accent)}
+.tcard .tn{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.tcard .tn b{font-weight:600}
+.tcard .tn span{font-size:12px;color:var(--muted)}
+.tcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.done{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.done div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.done span{font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.done p{font-size:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Bản thiết kế UI/UX · đã duyệt</span>
+    <h1>VniTyping Desktop</h1>
+    <p class="lede">Ứng dụng Windows portable viết bằng C# WinForms, chỉ một file <code>VniTyping.exe</code>. Gõ tiếng Việt trong cửa sổ nhỏ, bấm Copy rồi dán sang Outlook, Teams, Excel. Cửa sổ mẫu bên dưới gõ được thật (dùng chính <code>ukengine.js</code>), bạn thử Telex/VNI trực tiếp nhé.</p>
+  </header>
+
+  <section>
+    <div class="stage">
+      <div class="desk">
+        <div class="win" id="win" data-wt="sen">
+          <span class="tag" style="left:-10px;top:6px">1</span>
+          <span class="tag" style="left:-10px;top:44px">2</span>
+          <span class="tag" style="left:-10px;top:120px">3</span>
+          <span class="tag" style="left:-10px;bottom:10px">4</span>
+          <span class="tag" style="right:130px;top:-10px">5</span>
+          <span class="tag" style="right:90px;top:-10px">6</span>
+          <div class="tb">
+            <span class="logo">V</span><span class="name">VniTyping</span>
+            <button class="pinbtn" id="btnPin" aria-pressed="true" title="Luôn nổi trên cùng (Ctrl+T)" aria-label="Luôn nổi trên cùng">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.8V4h6v6.8l3 3.2H6z" fill="currentColor"/></svg>
+            </button>
+            <button id="btnMenu" title="Tuỳ chọn" aria-label="Tuỳ chọn" aria-expanded="false">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+            </button>
+            <button title="Thu nhỏ" aria-label="Thu nhỏ">&#8211;</button>
+            <button class="close" title="Đóng" aria-label="Đóng">&#10005;</button>
+            <div class="menu" id="menu" hidden>
+              <div class="item" data-opt="top"><span class="chk">✓</span>Luôn nổi trên cùng<span class="sc">Ctrl+T</span></div>
+                            <div class="item" data-opt="modern"><span class="chk">✓</span>Bỏ dấu kiểu mới (hoà, thuỷ)</div>
+              <div class="item" data-opt="tray"><span class="chk">✓</span>Thu nhỏ xuống khay hệ thống</div>
+              <hr>
+              <div class="item" style="cursor:default"><span class="chk"></span>Giao diện</div>
+              <div class="themes-row" id="menuThemes">
+                <button class="sw" data-t="sen" title="Sen" aria-label="Sen" style="--c1:#1f7a6c;--c2:#f5f7f6"></button>
+                <button class="sw" data-t="giay" title="Giấy Dó" aria-label="Giấy Dó" style="--c1:#9c3b2e;--c2:#eee5d2"></button>
+                <button class="sw" data-t="dem" title="Mực Đêm" aria-label="Mực Đêm" style="--c1:#c9a24b;--c2:#12161a"></button>
+                <button class="sw" data-t="neon" title="Phố Neon" aria-label="Phố Neon" style="--c1:#ff3d81;--c2:#1c1030"></button>
+                <button class="sw" data-t="phuong" title="Hoa Phượng" aria-label="Hoa Phượng" style="--c1:#d9481c;--c2:#fff8f0"></button>
+                <button class="sw" data-t="daodao" title="Anh Đào" aria-label="Anh Đào" style="--c1:#c2456e;--c2:#fdf3f6"></button>
+                <button class="sw" data-t="halong" title="Vịnh Hạ Long" aria-label="Vịnh Hạ Long" style="--c1:#3fc1b0;--c2:#0f2a30"></button>
+                <button class="sw" data-t="caphe" title="Cà Phê Sữa" aria-label="Cà Phê Sữa" style="--c1:#6b4426;--c2:#e9dccb"></button>
+                <button class="sw" data-t="tuongphan" title="Tương Phản Cao" aria-label="Tương Phản Cao" style="--c1:#ffd400;--c2:#000000"></button>
+              </div>
+              <div class="item"><span class="chk"></span>Cỡ chữ: A− &nbsp;A+<span class="sc">Ctrl+cuộn</span></div>
+              <hr>
+              <div class="item"><span class="chk"></span>Bảng phím tắt &amp; cách gõ<span class="sc">F1</span></div>
+              <div class="item"><span class="chk"></span>Giới thiệu &amp; giấy phép</div>
+            </div>
+          </div>
+          <div class="body">
+            <div class="modes" id="modes" role="tablist" aria-label="Kiểu gõ">
+              <button data-m="0" class="on">TELEX</button>
+              <button data-m="1">VNI</button>
+              <button data-m="2">VIQR</button>
+              <button data-m="-1">OFF</button>
+            </div>
+            <textarea id="editor" spellcheck="false" aria-label="Ô soạn thảo">Chào anh, em gửi lại file báo cáo tuần này nhé. </textarea>
+            <div class="foot">
+              <span class="status" id="status">0 ký tự · TELEX</span>
+              <button class="wbtn" id="btnClear" title="Xoá hết (Ctrl+Del)">Xoá</button>
+              <button class="wbtn primary" id="btnCopy" title="Copy tất cả (Ctrl+Enter)">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note"><span class="pin">1</span><div><h3>Thanh tiêu đề gọn</h3><p>Tên app + biểu tượng nhỏ. Kéo để di chuyển. Cửa sổ mặc định 360 × 280 px, kéo giãn được, nhỏ nhất 280 × 200 px. Mở lại sẽ nhớ vị trí và kích thước cũ.</p></div></div>
+        <div class="note"><span class="pin">2</span><div><h3>Chọn kiểu gõ</h3><p>TELEX · VNI · VIQR · OFF trên một hàng. Phím tắt <kbd>Ctrl</kbd>+<kbd>1</kbd>…<kbd>4</kbd>, hoặc <kbd>Ctrl</kbd>+<kbd>Shift</kbd> để xoay vòng TELEX ↔ OFF nhanh khi cần gõ tiếng Anh.</p></div></div>
+        <div class="note"><span class="pin">3</span><div><h3>Ô soạn thảo</h3><p>Nhiều dòng, font Segoe UI 10.5pt. Dùng đúng engine UniKey đã port sang C#. Bạn thử gõ <code>tieengs Vieetj</code> vào ô bên trái.</p></div></div>
+        <div class="note"><span class="pin">4</span><div><h3>Thanh trạng thái + hai nút chính</h3><p>Bên trái: số ký tự và kiểu gõ, chuyển thành “Đã copy ✓” trong 1,5 giây sau khi copy. Bên phải chỉ có <b>Xoá</b> và <b>Copy</b>. Bỏ nút Select All của bản web vì <kbd>Ctrl</kbd>+<kbd>A</kbd> đã đủ.</p></div></div>
+        <div class="note"><span class="pin">5</span><div><h3>Ghim luôn nổi trên cùng</h3><p>Bật sẵn. Cửa sổ nằm đè lên Outlook/Teams nên gõ xong copy và dán ngay, không phải Alt+Tab.</p></div></div>
+        <div class="note"><span class="pin">6</span><div><h3>Menu tuỳ chọn (⋯)</h3><p>Gom các thiết lập ít dùng vào đây để giao diện chính gọn, kể cả chọn giao diện bằng 4 chấm màu. Bấm thử nút ⋯ trên cửa sổ mẫu.</p></div></div>
+      </div>
+    </div>
+    <p class="hint">Cửa sổ mẫu gõ được thật. Các nút Thu nhỏ/Đóng chỉ để minh hoạ.</p>
+  </section>
+
+  <section>
+    <h2>Bộ giao diện</h2>
+    <p class="lede">9 bộ giao diện: 4 bộ mang từ bản web (Sen, Giấy Dó, Mực Đêm, Phố Neon) và 5 bộ mới (Hoa Phượng, Anh Đào, Vịnh Hạ Long, Cà Phê Sữa, Tương Phản Cao). Bấm vào từng thẻ để áp lên cửa sổ mẫu ở trên. Chọn trong app qua menu ⋯ → Giao diện, lựa chọn được lưu vào file ini.</p>
+    <div class="gallery" id="gallery">
+      <button class="tcard" data-t="sen" aria-pressed="true">
+        <span class="tn"><b>Sen</b><span>sáng · mặc định</span></span>
+        <span class="mini" data-wt="sen" style="display:block">
+          <span class="tb" style="display:flex"><span class="logo">V</span><span class="name">VniTyping</span><span class="ctl">–</span><span class="ctl">✕</span></span>
+          <span class="in" style="display:flex">
+            <span class="field" style="display:block">Tiếng Việt có dấu</span>
+            <span class="row" style="display:flex"><span class="s">17 ký tự · TELEX</span><span class="wbtn primary">Copy</span></span>
+          </span>
+        </span>
+      </button><button class="tcard" data-t="giay" aria-pressed="false">
+        <span class="tn"><b>Giấy Dó</b><span>sáng · font có chân</span></span>
+        <span class="mini" data-wt="giay" style="display:block">
+          <span class="tb" style="display:flex"><span class="logo">V</span><span class="name">VniTyping</span><span class="ctl">–</span><span class="ctl">✕</span></span>
+          <span class="in" style="display:flex">
+            <span class="field" style="display:block">Tiếng Việt có dấu</span>
+            <span class="row" style="display:flex"><span class="s">17 ký tự · TELEX</span><span class="wbtn primary">Copy</span></span>
+          </span>
+        </span>
+      </button><button class="tcard" data-t="dem" aria-pressed="false">
+        <span class="tn"><b>Mực Đêm</b><span>tối · chữ mono</span></span>
+        <span class="mini" data-wt="dem" style="display:block">
+          <span class="tb" style="display:flex"><span class="logo">V</span><span class="name">VniTyping</span><span class="ctl">–</span><span class="ctl">✕</span></span>
+          <span class="in" style="display:flex">
+            <span class="field" style="display:block">Tiếng Việt có dấu</span>
+            <span class="row" style="display:flex"><span class="s">17 ký tự · TELEX</span><span class="wbtn primary">Copy</span></span>
+          </span>
+        </span>
+      </button><button class="tcard" data-t="neon" aria-pressed="false">
+        <span class="tn"><b>Phố Neon</b><span>tối · nút phát sáng</span></span>
+        <span class="mini" data-wt="neon" style="display:block">
+          <span class="tb" style="display:flex"><span class="logo">V</span><span class="name">VniTyping</span><span class="ctl">–</span><span class="ctl">✕</span></span>
+          <span class="in" style="display:flex">
+            <span class="field" style="display:block">Tiếng Việt có dấu</span>
+            <span class="row" style="display:flex"><span class="s">17 ký tự · TELEX</span><span class="wbtn primary">Copy</span></span>
+          </span>
+        </span>
+      </button>
+    <button class="tcard" data-t="phuong" aria-pressed="false">
+        <span class="tn"><b>Hoa Phượng</b><span>sáng · đỏ cam rực rỡ</span></span>
+        <span class="mini" data-wt="phuong" style="display:block">
+          <span class="tb" style="display:flex"><span class="logo">V</span><span class="name">VniTyping</span><span class="ctl">–</span><span class="ctl">✕</span></span>
+          <span class="in" style="display:flex">
+            <span class="field" style="display:block">Tiếng Việt có dấu</span>
+            <span class="row" style="display:flex"><span class="s">17 ký tự · TELEX</span><span class="wbtn primary">Copy</span></span>
+          </span>
+        </span>
+      </button><button class="tcard" data-t="daodao" aria-pressed="false">
+        <span class="tn"><b>Anh Đào</b><span>sáng · hồng phấn, gợi Nhật Bản</span></span>
+        <span class="mini" data-wt="daodao" style="display:block">
+          <span class="tb" style="display:flex"><span class="logo">V</span><span class="name">VniTyping</span><span class="ctl">–</span><span class="ctl">✕</span></span>
+          <span class="in" style="display:flex">
+            <span class="field" style="display:block">Tiếng Việt có dấu</span>
+            <span class="row" style="display:flex"><span class="s">17 ký tự · TELEX</span><span class="wbtn primary">Copy</span></span>
+          </span>
+        </span>
+      </button><button class="tcard" data-t="halong" aria-pressed="false">
+        <span class="tn"><b>Vịnh Hạ Long</b><span>tối · xanh ngọc và sương</span></span>
+        <span class="mini" data-wt="halong" style="display:block">
+          <span class="tb" style="display:flex"><span class="logo">V</span><span class="name">VniTyping</span><span class="ctl">–</span><span class="ctl">✕</span></span>
+          <span class="in" style="display:flex">
+            <span class="field" style="display:block">Tiếng Việt có dấu</span>
+            <span class="row" style="display:flex"><span class="s">17 ký tự · TELEX</span><span class="wbtn primary">Copy</span></span>
+          </span>
+        </span>
+      </button><button class="tcard" data-t="caphe" aria-pressed="false">
+        <span class="tn"><b>Cà Phê Sữa</b><span>trung tính · nâu ấm, dịu mắt</span></span>
+        <span class="mini" data-wt="caphe" style="display:block">
+          <span class="tb" style="display:flex"><span class="logo">V</span><span class="name">VniTyping</span><span class="ctl">–</span><span class="ctl">✕</span></span>
+          <span class="in" style="display:flex">
+            <span class="field" style="display:block">Tiếng Việt có dấu</span>
+            <span class="row" style="display:flex"><span class="s">17 ký tự · TELEX</span><span class="wbtn primary">Copy</span></span>
+          </span>
+        </span>
+      </button><button class="tcard" data-t="tuongphan" aria-pressed="false">
+        <span class="tn"><b>Tương Phản Cao</b><span>tối · đen vàng, dễ đọc nhất</span></span>
+        <span class="mini" data-wt="tuongphan" style="display:block">
+          <span class="tb" style="display:flex"><span class="logo">V</span><span class="name">VniTyping</span><span class="ctl">–</span><span class="ctl">✕</span></span>
+          <span class="in" style="display:flex">
+            <span class="field" style="display:block">Tiếng Việt có dấu</span>
+            <span class="row" style="display:flex"><span class="s">17 ký tự · TELEX</span><span class="wbtn primary">Copy</span></span>
+          </span>
+        </span>
+      </button>
+    </div>
+    <p class="hint">Lưu ý WinForms: màu sắc và font đổi được đầy đủ. Bo góc mềm và hiệu ứng phát sáng chỉ làm gần đúng (vẽ tay bằng GDI+), không mượt như bản web.</p>
+  </section>
+
+  <section>
+    <h2>Các trạng thái khác</h2>
+    <div class="states">
+      <div class="state">
+        <h3>Sau khi bấm Copy</h3>
+        <div class="mini" data-wt="sen">
+          <div class="tb"><span class="logo">V</span><span class="name">VniTyping</span><span class="ctl">–</span><span class="ctl">✕</span></div>
+          <div class="in">
+            <div class="field">Chào anh, em gửi lại file báo cáo tuần này nhé.</div>
+            <div class="row"><span class="s ok">Đã copy 48 ký tự ✓</span><span class="wbtn">Xoá</span><span class="wbtn primary">Copy</span></div>
+          </div>
+        </div>
+        <p>Không hiện hộp thoại. Chỉ đổi dòng trạng thái rồi tự trở lại sau 1,5 giây. Văn bản giữ nguyên để bạn dán nhiều lần.</p>
+      </div>
+      <div class="state">
+        <h3>Chế độ OFF</h3>
+        <div class="mini" data-wt="sen">
+          <div class="tb"><span class="logo" style="background:var(--muted)">E</span><span class="name">VniTyping · OFF</span><span class="ctl">–</span><span class="ctl">✕</span></div>
+          <div class="in">
+            <div class="field">Please check the attached file.</div>
+            <div class="row"><span class="s">31 ký tự · OFF</span><span class="wbtn">Xoá</span><span class="wbtn primary">Copy</span></div>
+          </div>
+        </div>
+        <p>Biểu tượng đổi từ <b>V</b> sang <b>E</b> màu xám, cả trên tiêu đề lẫn khay hệ thống, nên nhìn là biết đang tắt.</p>
+      </div>
+      <div class="state">
+        <h3>Thu nhỏ xuống khay hệ thống</h3>
+        <div class="bubble" data-wt="sen">
+          <div><b>VniTyping</b></div>
+          <div>Hiện cửa sổ</div>
+          <div>Kiểu gõ: ● TELEX ○ VNI ○ VIQR ○ OFF</div>
+          <div>Thoát</div>
+        </div>
+        <div class="tray" data-wt="sen"><span>ENG</span><span class="ico">V</span><span>14:32</span></div>
+        <p>Bấm nút – thì app ẩn xuống khay. Bấm ✕ thì thoát hẳn. Bấm đúp biểu tượng để hiện lại. Phím tắt toàn cục <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd> để gọi cửa sổ lên (không phải hook bàn phím, chỉ là RegisterHotKey).</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Luồng sử dụng chính</h2>
+    <div class="flow">
+      <div class="step"><b>Mở</b>Chạy <code>VniTyping.exe</code> (không cài đặt)</div><span class="arrow">→</span>
+      <div class="step"><b>Gõ</b>Gõ Telex/VNI trong cửa sổ nổi</div><span class="arrow">→</span>
+      <div class="step"><b>Copy</b><kbd>Ctrl</kbd>+<kbd>Enter</kbd> hoặc nút Copy</div><span class="arrow">→</span>
+      <div class="step"><b>Dán</b><kbd>Ctrl</kbd>+<kbd>V</kbd> vào Outlook, Teams…</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Phím tắt</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>Phím</th><th>Tác dụng</th><th>Phạm vi</th></tr>
+      <tr><td class="k"><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>Copy toàn bộ văn bản</td><td>Trong app</td></tr>
+      <tr><td class="k"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd></td><td>Copy rồi xoá trắng, sẵn sàng cho câu tiếp theo</td><td>Trong app</td></tr>
+      <tr><td class="k"><kbd>Ctrl</kbd>+<kbd>Del</kbd></td><td>Xoá hết</td><td>Trong app</td></tr>
+      <tr><td class="k"><kbd>Ctrl</kbd>+<kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd></td><td>TELEX / VNI / VIQR / OFF</td><td>Trong app</td></tr>
+      <tr><td class="k"><kbd>Ctrl</kbd>+<kbd>Shift</kbd></td><td>Bật/tắt nhanh tiếng Việt (giống UniKey)</td><td>Trong app</td></tr>
+      <tr><td class="k"><kbd>Ctrl</kbd>+<kbd>T</kbd></td><td>Bật/tắt luôn nổi trên cùng</td><td>Trong app</td></tr>
+      <tr><td class="k"><kbd>Esc</kbd></td><td>Ẩn xuống khay</td><td>Trong app</td></tr>
+      <tr><td class="k"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd></td><td>Gọi cửa sổ lên và đặt con trỏ vào ô gõ</td><td>Toàn hệ thống</td></tr>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Thông số kỹ thuật dự kiến</h2>
+    <div class="spec">
+      <div><span>Nền tảng</span><strong>C# WinForms · .NET Framework 4.8</strong></div>
+      <div><span>Kích thước file</span><strong>khoảng 60–120 KB, 1 file .exe</strong></div>
+      <div><span>Cài đặt</span><strong>Không. Không ghi registry</strong></div>
+      <div><span>Lưu thiết lập</span><strong><code>VniTyping.ini</code> cạnh file exe</strong></div>
+      <div><span>Hệ điều hành</span><strong>Windows 10 / 11</strong></div>
+      <div><span>Mạng</span><strong>Không kết nối mạng</strong></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Đã chốt</h2>
+    <div class="done">
+      <div><span>Khay hệ thống</span><p>Có. Thu nhỏ xuống khay, kèm phím tắt <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd> gọi cửa sổ lên.</p></div>
+      <div><span>Tự động copy</span><p>Bỏ hẳn. Chỉ copy khi bấm nút hoặc <kbd>Ctrl</kbd>+<kbd>Enter</kbd>.</p></div>
+      <div><span>Kiểu dấu</span><p>Kiểu mới mặc định: <b>hoà, khoẻ, thuỷ</b>. Vẫn tắt được trong menu ⋯.</p></div>
+      <div><span>Giao diện</span><p>9 bộ giao diện, chọn tay trong menu ⋯. Không có chế độ tự động theo Windows.</p></div>
+      <div><span>Nút ✕ và –</span><p>✕ thoát hẳn app. – ẩn xuống khay hệ thống.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Câu hỏi vòng 3</h2>
+    <div class="qs">
+      <div class="q"><h3>1. Giao diện mặc định khi mở app lần đầu?</h3><p>Mình đề xuất Sen, giống bản web.</p></div>
+      <div class="q"><h3>2. Tên file và tên hiển thị của app?</h3><p>Hiện đang dùng <code>VniTyping.exe</code> và tiêu đề “VniTyping”. Bạn muốn đổi tên khác không?</p></div>
+      <div class="q"><h3>3. Có bộ nào trong 5 bộ mới bạn muốn bỏ hoặc chỉnh màu không?</h3><p>Bấm thử từng thẻ ở phần Bộ giao diện để xem trên cửa sổ mẫu.</p></div>
+    </div>
+  </section>
+</div>
+
+<script>
+/*!
+ * ukengine.js v2 — Bộ gõ tiếng Việt cho trình duyệt
+ *
+ * Engine lấy ÂM TIẾT làm trung tâm: mỗi phím gõ, từ đang gõ được tính lại
+ * từ đầu (phụ âm đầu + vần + dấu thanh) rồi so với chuỗi cũ để ra
+ * { backs, text }. Nhờ vậy dấu thanh luôn nằm đúng chỗ dù gõ theo thứ tự nào,
+ * và từ không phải tiếng Việt được trả lại nguyên văn.
+ *
+ * Kế thừa ý tưởng và bảng dữ liệu từ UniKey 3.62 —
+ * Copyright (C) 1998-2002 Pham Kim Long, GPL v2.
+ * Bản JavaScript: Copyright (C) 2026 Nguyễn Thành Đạt, GPL v2 hoặc mới hơn.
+ */
+(function (root, factory) {
+  'use strict';
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.UkEngine = factory();
+}(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  // ===================================================================
+  // 1. HẰNG SỐ
+  // ===================================================================
+  var TELEX = 0, VNI = 1, VIQR = 2, VIQR_STAR = 3;
+
+  // Dấu phụ gắn vào chữ gốc
+  var NONE = 0, HAT = 1, BREVE = 2, HORN = 3, STROKE = 4;
+
+  // Dấu thanh: 0 = không dấu, 1 sắc, 2 huyền, 3 hỏi, 4 ngã, 5 nặng
+  var SAC = 1, HUYEN = 2, HOI = 3, NGA = 4, NANG = 5;
+
+  // ===================================================================
+  // 2. BẢNG KÝ TỰ
+  // ===================================================================
+  // 12 nguyên âm × 6 cột: sắc, huyền, hỏi, ngã, nặng, không dấu
+  var BD = [
+    'áàảãạa', 'ấầẩẫậâ', 'ắằẳẵặă',
+    'éèẻẽẹe', 'ếềểễệê',
+    'íìỉĩịi',
+    'óòỏõọo', 'ốồổỗộô', 'ớờởỡợơ',
+    'úùủũụu', 'ứừửữựư',
+    'ýỳỷỹỵy'
+  ];
+  var ROW_BASE = 'aaaeeiooouuy';
+  var ROW_MARK = [NONE, HAT, BREVE, NONE, HAT, NONE, NONE, HAT, HORN, NONE, HORN, NONE];
+
+  function isVowel(b) { return b.length === 1 && 'aeiouy'.indexOf(b) >= 0; }
+
+  function rowOf(b, m) {
+    for (var r = 0; r < 12; r++) if (ROW_BASE[r] === b && ROW_MARK[r] === m) return r;
+    return -1;
+  }
+
+  // Phân rã một ký tự (chữ thường) thành { b: chữ gốc, m: dấu phụ, t: dấu thanh }
+  var DECOMP = Object.create(null);
+  (function () {
+    for (var r = 0; r < 12; r++)
+      for (var c = 0; c < 6; c++)
+        DECOMP[BD[r][c]] = { b: ROW_BASE[r], m: ROW_MARK[r], t: c === 5 ? 0 : c + 1 };
+    DECOMP['đ'] = { b: 'd', m: STROKE, t: 0 };
+    for (var i = 97; i <= 122; i++) {
+      var ch = String.fromCharCode(i);
+      if (!DECOMP[ch]) DECOMP[ch] = { b: ch, m: NONE, t: 0 };
+    }
+  }());
+
+  function isWordChar(c) { return !!DECOMP[c.toLowerCase()]; }
+
+  /** Ký tự hiển thị của một chữ (có thể kèm dấu thanh) */
+  function charOf(L, tone) {
+    var ch;
+    if (isVowel(L.b)) ch = BD[rowOf(L.b, L.m)][tone ? tone - 1 : 5];
+    else ch = L.m === STROKE ? 'đ' : L.b;
+    return L.up ? ch.toUpperCase() : ch;
+  }
+
+  function keyOf(Ls, from, to) {
+    var s = '';
+    for (var i = from; i < to; i++) s += charOf({ b: Ls[i].b, m: Ls[i].m, up: false }, 0);
+    return s;
+  }
+
+  // ===================================================================
+  // 3. LUẬT CHÍNH TẢ
+  // ===================================================================
+  var ONSETS = ('b c ch d đ g gh gi h k kh l m n ng ngh nh p ph qu r s t th tr v x').split(' ');
+  var ONSET_SET = Object.create(null), ONSET_PREFIX = Object.create(null);
+  ONSET_SET[''] = ONSET_PREFIX[''] = true;
+  ONSETS.forEach(function (o) {
+    ONSET_SET[o] = true;
+    for (var i = 1; i <= o.length; i++) ONSET_PREFIX[o.slice(0, i)] = true;
+  });
+
+  // Toàn bộ vần hợp lệ (nguyên âm + phụ âm cuối), không kể dấu thanh
+  var RIMES = (
+    'a ai ao au ay ac ach am an ang anh ap at ' +
+    'ăc ăm ăn ăng ăp ăt ' +
+    'âc âm ân âng âp ât âu ây ' +
+    'e eo ec em en eng ep et ' +
+    'ê êu êch êm ên ênh êp êt ' +
+    'i ia iu ich im in inh ip it ' +
+    'iêc iêm iên iêng iêp iêt iêu ' +
+    'o oi oc om on ong op ot oong ooc ' +
+    'oa oai oao oay oac oach oam oan oang oanh oap oat ' +
+    'oăc oăm oăn oăng oăt ' +
+    'oe oeo oen oet ' +
+    'ô ôi ôc ôm ôn ông ôp ôt ' +
+    'ơ ơi ơm ơn ơp ơt ' +
+    'u ua ui uc um un ung up ut ' +
+    'uân uâng uât uây ' +
+    'uê uêch uênh ' +
+    'uy uya uyu uych uynh uyt uyên uyêt ' +
+    'uơ ' +
+    'uôc uôi uôm uôn uông uôt ' +
+    'ư ưa ưi ưu ưc ưm ưng ưt ' +
+    'ươc ươi ươm ươn ương ươp ươt ươu ' +
+    'y yêm yên yêt yêu ych ynh yt'
+  ).split(' ').map(function (r) {
+    return r.split('').map(function (c) { return DECOMP[c]; });
+  });
+
+  var STOP_FINALS = { c: 1, ch: 1, p: 1, t: 1 };
+
+  /**
+   * Các cách tách từ thành phụ âm đầu + vần. Trả về mảng { vs, ve }:
+   * phụ âm đầu = [0, vs), cụm nguyên âm = [vs, ve), phụ âm cuối = [ve, hết).
+   * "qu" và "gi" có thể nuốt chữ u / i vào phụ âm đầu.
+   */
+  function parses(Ls) {
+    var n = Ls.length, i = 0;
+    while (i < n && !isVowel(Ls[i].b)) i++;
+    function mk(vs) {
+      var ve = vs;
+      while (ve < n && isVowel(Ls[ve].b)) ve++;
+      return { vs: vs, ve: ve };
+    }
+    var on = keyOf(Ls, 0, i);
+    if (on === 'q' && i < n && Ls[i].b === 'u' && Ls[i].m === NONE) return [mk(i + 1)];
+    if (on === 'g' && i + 1 < n && Ls[i].b === 'i' && Ls[i].m === NONE && isVowel(Ls[i + 1].b))
+      return [mk(i + 1), mk(i)];
+    return [mk(i)];
+  }
+
+  function rimeMatch(rime, complete) {
+    for (var k = 0; k < RIMES.length; k++) {
+      var r = RIMES[k];
+      if (complete ? r.length !== rime.length : r.length < rime.length) continue;
+      var ok = true;
+      for (var j = 0; j < rime.length && ok; j++) {
+        if (r[j].b !== rime[j].b) ok = false;
+        else if (r[j].m !== rime[j].m && (complete || rime[j].m !== NONE)) ok = false;
+      }
+      if (ok) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Kiểm tra từ có phải âm tiết tiếng Việt hợp lệ không.
+   * complete = false: chấp nhận cả "đang gõ dở" (còn có thể thêm chữ / dấu phụ).
+   * Trả về cách tách hợp lệ, hoặc null.
+   */
+  function validParse(Ls, tone, complete) {
+    var ps = parses(Ls), n = Ls.length;
+    for (var k = 0; k < ps.length; k++) {
+      var p = ps[k], on = keyOf(Ls, 0, p.vs), rime = Ls.slice(p.vs);
+      if (!rime.length) {
+        if (!complete && ONSET_PREFIX[on]) return p;
+        continue;
+      }
+      if (!ONSET_SET[on]) continue;
+      var fb = rime[0].b;
+      if (on === 'c' && 'eiy'.indexOf(fb) >= 0) continue;
+      if (on === 'k' && 'eiy'.indexOf(fb) < 0) continue;
+      if ((on === 'gh' || on === 'ngh') && 'ei'.indexOf(fb) < 0) continue;
+      if (!rimeMatch(rime, complete)) continue;
+      if ((tone === HUYEN || tone === HOI || tone === NGA) && STOP_FINALS[keyOf(Ls, p.ve, n)]) continue;
+      return p;
+    }
+    return null;
+  }
+
+  /** Vị trí đặt dấu thanh trong từ (chỉ số chữ), -1 nếu không có nguyên âm */
+  function tonePosition(Ls, modernStyle) {
+    var ps = parses(Ls);
+    var p = validParse(Ls, 0, false) || ps[ps.length - 1];
+    var idx = [], marked = [], i;
+    for (i = p.vs; i < p.ve; i++) {
+      idx.push(i);
+      if (Ls[i].m !== NONE) marked.push(i);
+    }
+    if (!idx.length) return -1;
+    if (marked.length) return marked[marked.length - 1];   // ê, ơ, ư... (ươ → ơ)
+    if (idx.length === 1) return idx[0];
+    if (idx.length >= 3) return idx[1];                      // oai, uya → chữ giữa
+    if (p.ve < Ls.length) return idx[1];                     // có phụ âm cuối: hoàn
+    var pair = Ls[idx[0]].b + Ls[idx[1]].b;
+    if (modernStyle && (pair === 'oa' || pair === 'oe' || pair === 'uy')) return idx[1];
+    return idx[0];                                           // âm mở: mùa, hòa
+  }
+
+  // ===================================================================
+  // 4. KIỂU GÕ → HÀNH ĐỘNG
+  // ===================================================================
+  var TELEX_TONES = { s: SAC, f: HUYEN, r: HOI, x: NGA, j: NANG, z: 0 };
+  var VNI_TONES = { '1': SAC, '2': HUYEN, '3': HOI, '4': NGA, '5': NANG, '0': 0 };
+  var VIQR_TONES = { "'": SAC, '`': HUYEN, '?': HOI, '~': NGA, '.': NANG, '0': 0, '=': 0 };
+  var SHORTCUTS = { '[': ['o', false], ']': ['u', false], '{': ['o', true], '}': ['u', true] };
+
+  function actionOf(method, key) {
+    var k = key.toLowerCase();
+    if (method === TELEX) {
+      if (k in TELEX_TONES) return { type: 'tone', t: TELEX_TONES[k] };
+      if (k === 'a' || k === 'e' || k === 'o') return { type: 'hat', targets: k };
+      if (k === 'w') return { type: 'w' };
+      if (k === 'd') return { type: 'stroke', adjacent: true };
+      if (key in SHORTCUTS) return { type: 'short', b: SHORTCUTS[key][0], up: SHORTCUTS[key][1] };
+      return null;
+    }
+    if (method === VNI) {
+      if (k in VNI_TONES) return { type: 'tone', t: VNI_TONES[k] };
+      if (k === '6') return { type: 'hat', targets: 'aeo' };
+      if (k === '7') return { type: 'horn' };
+      if (k === '8') return { type: 'breve' };
+      if (k === '9') return { type: 'stroke', adjacent: false };
+      return null;
+    }
+    // VIQR / VIQR*
+    if (k in VIQR_TONES) return { type: 'tone', t: VIQR_TONES[k] };
+    if (k === '^') return { type: 'hat', targets: 'aeo' };
+    if (k === (method === VIQR_STAR ? '*' : '+')) return { type: 'horn' };
+    if (k === '(') return { type: 'breve' };
+    if (k === 'd') return { type: 'stroke', adjacent: true };
+    if (k === '\\') return { type: 'escape' };
+    return null;
+  }
+
+  // ===================================================================
+  // 5. ENGINE
+  // ===================================================================
+  function UkEngine(opts) {
+    opts = opts || {};
+    this.options = {
+      freeMarking: opts.freeMarking !== false && opts.toneNextToVowel !== true,
+      modernStyle: opts.modernStyle !== false,   // hoà, khoẻ, thuỷ
+      autoRestore: opts.autoRestore !== false,   // trả lại từ không phải tiếng Việt
+      hornUO:      opts.hornUO !== false,        // uo + w → ươ
+      macroEnabled: opts.macroEnabled === true
+    };
+    this.macros = new Map();
+    this.enabled = true;
+    this.method = opts.method === undefined ? TELEX : opts.method;
+    this.reset();
+  }
+
+  UkEngine.TELEX = TELEX;
+  UkEngine.VNI = VNI;
+  UkEngine.VIQR = VIQR;
+  UkEngine.VIQR_STAR = VIQR_STAR;
+  // lộ ra để kiểm thử / dùng lại
+  UkEngine.tonePosition = tonePosition;
+  UkEngine.isValidSyllable = function (word) {
+    var w = wordFromText(word);
+    return !!(w && validParse(w.Ls, w.tone, true));
+  };
+
+  var P = UkEngine.prototype;
+
+  P.setMethod = function (m) { this.method = m; this.reset(); };
+  P.setOption = function (k, v) {
+    if (k === 'toneNextToVowel') { k = 'freeMarking'; v = !v; }
+    this.options[k] = v;
+  };
+  P.setEnabled = function (on) { this.enabled = !!on; this.reset(); };
+  P.setMacros = function (map) {
+    var self = this;
+    this.macros = new Map();
+    (map instanceof Map ? Array.from(map) : Object.keys(map).map(function (k) { return [k, map[k]]; }))
+      .forEach(function (p) { self.macros.set(String(p[0]).toLowerCase(), p[1]); });
+  };
+
+  /** Xoá trạng thái từ đang gõ */
+  P.reset = function () {
+    this.w = {
+      Ls: [],        // các chữ: { b, m, up, sk }  (sk = sinh ra từ phím tắt w [ ])
+      tone: 0,
+      raw: '',       // văn bản gốc + phím đã gõ, dùng khi trả lại nguyên văn
+      out: '',       // chuỗi đang hiển thị
+      locked: false, // không biến đổi gì thêm cho tới hết từ
+      rawMode: false,// đang hiển thị nguyên văn
+      tf: false,     // đã có biến đổi dấu
+      esc: false     // VIQR: phím kế tiếp là ký tự thường
+    };
+  };
+  P.clearBuf = P.reset;
+
+  function wordFromText(text) {
+    var Ls = [], tone = 0;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i], d = DECOMP[c.toLowerCase()];
+      if (!d) return null;
+      if (d.t) { if (tone) return null; tone = d.t; }
+      Ls.push({ b: d.b, m: d.m, up: c !== c.toLowerCase(), sk: false });
+    }
+    return { Ls: Ls, tone: tone };
+  }
+
+  function trailingWord(text) {
+    var i = text.length;
+    while (i > 0 && isWordChar(text[i - 1])) i--;
+    return text.slice(i);
+  }
+
+  /** Nạp lại trạng thái từ văn bản đứng trước con trỏ */
+  P.syncFrom = function (textBeforeCaret) {
+    this.reset();
+    var word = trailingWord(textBeforeCaret);
+    if (!word) return;
+    var w = this.w, parsed = wordFromText(word);
+    w.raw = w.out = word;
+    w.Ls = parsed ? parsed.Ls : [];
+    w.tone = parsed ? parsed.tone : 0;
+    w.tf = !!parsed && (w.tone > 0 || w.Ls.some(function (L) { return L.m !== NONE; }));
+    if (!parsed || !this._ok(w.Ls, w.tone)) { w.locked = true; w.rawMode = true; }
+  };
+
+  /** Chỉ nạp lại khi văn bản trước con trỏ không khớp từ đang gõ (Undo, Paste, click...) */
+  P.ensureSync = function (textBeforeCaret) {
+    var out = this.w.out, n = textBeforeCaret.length - out.length;
+    var same = n >= 0 && textBeforeCaret.slice(n) === out &&
+               !(n > 0 && isWordChar(textBeforeCaret[n - 1]));
+    if (!same || (!out && trailingWord(textBeforeCaret))) this.syncFrom(textBeforeCaret);
+  };
+
+  /** Backspace khi dùng engine độc lập (không qua attach) */
+  P.backspace = function () { this.syncFrom(this.w.out.slice(0, -1)); };
+
+  P._ok = function (Ls, tone) {
+    return !this.options.autoRestore || !!validParse(Ls, tone, false);
+  };
+
+  P._render = function () {
+    var w = this.w;
+    if (w.rawMode) { w.out = w.raw; return; }
+    var tp = w.tone ? tonePosition(w.Ls, this.options.modernStyle) : -1, s = '';
+    for (var i = 0; i < w.Ls.length; i++) s += charOf(w.Ls[i], i === tp ? w.tone : 0);
+    w.out = s;
+  };
+
+  function letterOf(key) {
+    var lower = key.toLowerCase();
+    return { b: lower, m: NONE, up: key !== lower, sk: false };
+  }
+
+  function diff(a, b) {
+    var p = 0;
+    while (p < a.length && p < b.length && a[p] === b[p]) p++;
+    return { backs: a.length - p, text: b.slice(p) };
+  }
+
+  P._isWordKey = function (key) {
+    if (/^[a-zA-Z]$/.test(key)) return true;
+    if (this.method === TELEX && key in SHORTCUTS) return true;
+    var w = this.w;
+    return w.Ls.length > 0 && !w.locked && !!actionOf(this.method, key);
+  };
+
+  /**
+   * Xử lý một phím. Trả về { backs, text }:
+   * xoá `backs` ký tự trước con trỏ rồi chèn `text`.
+   */
+  P.process = function (key) {
+    if (!this.enabled) return { backs: 0, text: key };
+    var old = this.w.out;
+    if (this._isWordKey(key)) {
+      this._wordKey(key);
+      return diff(old, this.w.out);
+    }
+    var d = diff(old, this._finish());
+    d.text += key;
+    this.reset();
+    return d;
+  };
+
+  /** Kết thúc từ (Enter, Tab, mất focus...). Trả về chỉnh sửa cần áp dụng. */
+  P.endWord = function () {
+    var d = diff(this.w.out, this._finish());
+    this.reset();
+    return d;
+  };
+
+  P._wordKey = function (key) {
+    var w = this.w;
+    w.raw += key;
+    if (w.esc) {                                   // VIQR: "\" + phím → phím thường
+      w.esc = false;
+      w.Ls.pop();
+      w.raw = w.raw.slice(0, -2) + key;
+      this._literal(key);
+    } else {
+      var act = w.locked ? null : actionOf(this.method, key);
+      if (!(act && this._apply(act, key))) this._literal(key);
+    }
+    // "ưo" không phải vần tiếng Việt: gõ móc cho u trước rồi mới gõ o → tự thành "ươ"
+    if (this.options.hornUO && !w.locked) {
+      for (var j = 0; j + 1 < w.Ls.length; j++)
+        if (w.Ls[j].b === 'u' && w.Ls[j].m === HORN && w.Ls[j + 1].b === 'o' && w.Ls[j + 1].m === NONE)
+          { w.Ls[j + 1].m = HORN; w.Ls[j + 1].auto = true; }
+    }
+    this._render();
+  };
+
+  /** Thêm phím như một chữ thường; nếu từ không còn là tiếng Việt thì trả lại nguyên văn */
+  P._literal = function (key) {
+    var w = this.w;
+    w.Ls.push(letterOf(key));
+    if (w.locked) return;
+    if (!this._ok(w.Ls, w.tone)) {
+      if (w.tf) w.rawMode = true;
+      w.locked = true;
+    }
+  };
+
+  /** Gõ lại cùng phím dấu: bỏ dấu, chèn phím đó, khoá từ */
+  P._undo = function (key) {
+    this.w.Ls.push(letterOf(key));
+    this.w.locked = true;
+    return true;
+  };
+
+  P._apply = function (act, key) {
+    var w = this.w, Ls = w.Ls, n = Ls.length, free = this.options.freeMarking, i, L;
+
+    switch (act.type) {
+      case 'tone': {
+        var hasVowel = Ls.some(function (x) { return isVowel(x.b); });
+        if (!hasVowel || (!free && !isVowel(Ls[n - 1].b))) return false;
+        if (act.t === 0) {
+          if (!w.tone) return false;
+          w.tone = 0; w.tf = true; return true;
+        }
+        if (w.tone === act.t) { w.tone = 0; return this._undo(key); }
+        if (!this._ok(Ls, act.t)) return false;
+        w.tone = act.t; w.tf = true; return true;
+      }
+
+      case 'hat': {
+        for (i = n - 1; i >= 0; i--) {
+          L = Ls[i];
+          if (!isVowel(L.b)) continue;
+          if (act.targets.indexOf(L.b) < 0) continue;
+          if (L.m === HAT) { L.m = NONE; return this._undo(key); }
+          if (!free && i !== n - 1) return false;
+          var oldM = L.m;
+          L.m = HAT;
+          if (this._ok(Ls, w.tone)) { w.tf = true; return true; }
+          L.m = oldM;
+          return false;
+        }
+        return false;
+      }
+
+      case 'w': case 'horn': case 'breve': {
+        var cands = [], j;
+        if (act.type !== 'breve' && this.options.hornUO) {
+          for (j = 0; j + 1 < n; j++)
+            if (Ls[j].b === 'u' && Ls[j + 1].b === 'o' && !(j > 0 && Ls[j - 1].b === 'q')) cands.push([j, j + 1]);
+        }
+        for (j = n - 1; j >= 0; j--) {
+          var b = Ls[j].b;
+          if ((act.type !== 'breve' && (b === 'u' || b === 'o')) || (act.type !== 'horn' && b === 'a'))
+            cands.push([j]);
+        }
+        for (var c = 0; c < cands.length; c++) {
+          var ids = cands[c];
+          var target = function (k) { return Ls[k].b === 'a' ? BREVE : HORN; };
+          if (ids.every(function (k) { return Ls[k].m === target(k); })) {
+            if (ids.some(function (k) { return Ls[k].auto; })) {   // ơ đã tự thêm: phím móc chỉ xác nhận
+              ids.forEach(function (k) { Ls[k].auto = false; });
+              return true;
+            }
+            if (ids.length === 1 && Ls[ids[0]].sk) {            // "ww" → "w"
+              Ls[ids[0]] = letterOf(key);
+              w.locked = true;
+              return true;
+            }
+            ids.forEach(function (k) { Ls[k].m = NONE; });
+            return this._undo(key);
+          }
+          if (!free && ids[ids.length - 1] !== n - 1) continue;
+          var saved = ids.map(function (k) { return Ls[k].m; });
+          ids.forEach(function (k) { Ls[k].m = target(k); });
+          if (this._ok(Ls, w.tone)) { w.tf = true; return true; }
+          ids.forEach(function (k, x) { Ls[k].m = saved[x]; });
+        }
+        if (act.type === 'w') {                                 // "w" đứng riêng → ư
+          Ls.push({ b: 'u', m: HORN, up: key === 'W', sk: true });
+          if (this._ok(Ls, w.tone)) { w.tf = true; return true; }
+          Ls.pop();
+        }
+        return false;
+      }
+
+      case 'stroke': {
+        if (!n || Ls[0].b !== 'd' || (act.adjacent && n !== 1)) return false;
+        if (Ls[0].m === STROKE) { Ls[0].m = NONE; return this._undo(key); }
+        Ls[0].m = STROKE;
+        if (this._ok(Ls, w.tone)) { w.tf = true; return true; }
+        Ls[0].m = NONE;
+        return false;
+      }
+
+      case 'short': {                                           // [ ] { } → ơ ư Ơ Ư
+        L = Ls[n - 1];
+        if (L && L.sk && L.b === act.b) { Ls[n - 1] = letterOf(key); w.locked = true; return true; }
+        Ls.push({ b: act.b, m: HORN, up: act.up, sk: true });
+        if (this._ok(Ls, w.tone)) { w.tf = true; return true; }
+        Ls.pop();
+        return false;
+      }
+
+      case 'escape':
+        Ls.push(letterOf(key));
+        w.esc = true;
+        return true;
+    }
+    return false;
+  };
+
+  /** Chuỗi cuối cùng của từ khi gõ xong: chuẩn hoá ươ → uơ, trả lại nguyên văn, gõ tắt */
+  P._finish = function () {
+    var w = this.w;
+    if (!w.Ls.length && !w.rawMode) return w.out;
+    var out = w.out;
+    if (!w.rawMode && w.tf && !w.locked && this.options.autoRestore) {
+      var Ls = w.Ls, n = Ls.length;
+      // "thưở" → "thuở": ươ không có phụ âm cuối chỉ đúng khi là uơ
+      if (n >= 2 && Ls[n - 2].b === 'u' && Ls[n - 2].m === HORN && Ls[n - 1].b === 'o' && Ls[n - 1].m === HORN &&
+          !(n >= 3 && isVowel(Ls[n - 3].b))) {
+        Ls[n - 2].m = NONE;
+        this._render();
+        out = w.out;
+      }
+      if (!validParse(Ls, w.tone, true)) out = w.raw;
+    }
+    if (this.options.macroEnabled && this.macros.size) {
+      var key = out.toLowerCase();
+      if (this.macros.has(key)) out = this.macros.get(key);
+    }
+    return out;
+  };
+
+  // ===================================================================
+  // 6. Gắn vào <textarea> / <input>
+  // ===================================================================
+  UkEngine.attach = function (el, engine) {
+    function apply(r, s, e) {
+      var from = Math.max(0, s - r.backs), top = el.scrollTop;
+      el.setSelectionRange(from, e);
+      var done = false;
+      try {
+        // execCommand giữ được lịch sử Undo (Ctrl+Z) của trình duyệt
+        done = from === e && !r.text ? true
+             : r.text ? document.execCommand('insertText', false, r.text)
+             : document.execCommand('delete', false);
+      } catch (err) { done = false; }
+      if (!done) {
+        el.setRangeText(r.text, from, e, 'end');
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      el.scrollTop = top;
+    }
+
+    function onKeyDown(ev) {
+      if (!engine.enabled || ev.isComposing || ev.keyCode === 229) return;
+      if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+      var s = el.selectionStart, e = el.selectionEnd;
+      var before = el.value.slice(0, s);
+      if (ev.key === 'Enter' || ev.key === 'Tab') {
+        engine.ensureSync(before);
+        var end = engine.endWord();
+        if (s === e && (end.backs || end.text)) apply(end, s, s);
+        return;                                // để trình duyệt tự xuống dòng
+      }
+      if (!ev.key || ev.key.length !== 1) return; // phím điều hướng, Backspace...: lần gõ sau tự đồng bộ
+      engine.ensureSync(before);
+      var r = engine.process(ev.key);
+      ev.preventDefault();
+      apply(r, s, e);
+    }
+
+    function onBlur() { engine.reset(); }
+
+    el.addEventListener('keydown', onKeyDown);
+    el.addEventListener('blur', onBlur);
+    return function detach() {
+      el.removeEventListener('keydown', onKeyDown);
+      el.removeEventListener('blur', onBlur);
+    };
+  };
+
+  return UkEngine;
+}));
+
+</script>
+<script>
+(function(){
+  var ed=document.getElementById('editor'), st=document.getElementById('status');
+  var engine=new UkEngine({method:UkEngine.TELEX, modernStyle:true});
+  UkEngine.attach(ed,engine);
+  var names={'0':'TELEX','1':'VNI','2':'VIQR','-1':'OFF'}, mode='0', timer;
+  function status(){ st.className='status'; st.textContent=ed.value.length+' ký tự · '+names[mode]; }
+  ed.addEventListener('input',status);
+  function setMode(m){
+    mode=m;
+    if(m==='-1') engine.setEnabled(false); else { engine.setMethod(parseInt(m,10)); engine.setEnabled(true); }
+    document.querySelectorAll('#modes button').forEach(function(b){
+      b.classList.toggle('on',b.dataset.m===m); b.classList.toggle('off',m==='-1');
+    });
+    status();
+  }
+  document.querySelectorAll('#modes button').forEach(function(b){
+    b.addEventListener('click',function(){ setMode(b.dataset.m); ed.focus(); });
+  });
+  function copy(){
+    var text=ed.value, done=function(){ st.className='status ok'; st.textContent='Đã copy '+text.length+' ký tự ✓';
+      clearTimeout(timer); timer=setTimeout(status,1500); };
+    try{ navigator.clipboard.writeText(text).then(done,function(){ ed.select(); done(); }); }catch(e){ ed.select(); done(); }
+  }
+  document.getElementById('btnCopy').addEventListener('click',copy);
+  document.getElementById('btnClear').addEventListener('click',function(){ ed.value=''; engine.clearBuf(); status(); ed.focus(); });
+  ed.addEventListener('keydown',function(e){
+    if(e.ctrlKey && e.key==='Enter'){ e.preventDefault(); copy(); if(e.shiftKey){ ed.value=''; engine.clearBuf(); } }
+    if(e.ctrlKey && /^[1-4]$/.test(e.key)){ e.preventDefault(); setMode(['0','1','2','-1'][+e.key-1]); }
+  },true);
+  var pin=document.getElementById('btnPin');
+  pin.addEventListener('click',function(){ pin.setAttribute('aria-pressed',pin.getAttribute('aria-pressed')==='true'?'false':'true'); syncTop(); });
+  var menu=document.getElementById('menu'), mb=document.getElementById('btnMenu');
+  mb.addEventListener('click',function(e){ e.stopPropagation(); menu.hidden=!menu.hidden; mb.setAttribute('aria-expanded',String(!menu.hidden)); });
+  document.addEventListener('click',function(e){ if(!menu.hidden && !menu.contains(e.target)){ menu.hidden=true; mb.setAttribute('aria-expanded','false'); } });
+  function syncTop(){ menu.querySelector('[data-opt="top"] .chk').textContent = pin.getAttribute('aria-pressed')==='true'?'✓':''; }
+  menu.querySelectorAll('[data-opt]').forEach(function(it){
+    it.addEventListener('click',function(){
+      var c=it.querySelector('.chk'); var on=c.textContent!=='✓'; c.textContent=on?'✓':'';
+      if(it.dataset.opt==='top') pin.setAttribute('aria-pressed',String(on));
+      if(it.dataset.opt==='modern') engine.setOption('modernStyle',on);
+    });
+  });
+  function setTheme(t){
+    document.querySelectorAll('[data-wt]').forEach(function(el){ if(!el.closest('.tcard')) el.setAttribute('data-wt',t); });
+    document.querySelectorAll('.sw,.tcard').forEach(function(b){ b.setAttribute('aria-pressed',String(b.dataset.t===t)); });
+    try{ localStorage.setItem('mock_theme',t); }catch(e){}
+  }
+  document.querySelectorAll('.sw,.tcard').forEach(function(b){
+    b.addEventListener('click',function(e){ e.stopPropagation(); setTheme(b.dataset.t); });
+  });
+  var saved='sen'; try{ saved=localStorage.getItem('mock_theme')||'sen'; }catch(e){}
+  setTheme(saved);
+  status();
+})();
+</script>
+
+</body>
+</html>

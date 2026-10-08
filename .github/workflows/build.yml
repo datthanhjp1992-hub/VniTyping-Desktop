@@ -1,0 +1,36 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # để đưa exe lên trang Releases khi tạo tag v*
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Cùng một script với khi build trên máy: test engine trước, rồi build exe
+      - name: Test và build
+        shell: cmd
+        run: build.bat
+
+      - name: Tải exe về từ tab Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: VniTyping
+          path: dist/VniTyping.exe
+          if-no-files-found: error
+
+      - name: Đưa exe lên Releases (khi tạo tag v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/VniTyping.exe
+          generate_release_notes: true
