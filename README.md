@@ -67,7 +67,15 @@ Script dùng `csc.exe` có sẵn trong `C:\Windows\Microsoft.NET\Framework64\v4.
 
 Vì `csc.exe` này chỉ hỗ trợ **C# 5**, mã nguồn không dùng cú pháp mới hơn (`$"..."`, `?.`, `=>` cho thuộc tính…).
 
-GitHub Actions (`.github/workflows/build.yml`) chạy đúng `build.bat` trên máy Windows mỗi lần push. Khi tạo tag `v*` (ví dụ `v1.0.0`), exe được đưa lên trang Releases.
+GitHub Actions (`.github/workflows/build.yml`) chạy đúng `build.bat` trên máy Windows mỗi lần push.
+
+### Phát hành bản mới
+
+1. Ghi thay đổi vào `CHANGELOG.md` và tăng số phiên bản trong `src/Program.cs`, commit lên `main`.
+2. Vào tab **Actions** → **Build** → **Run workflow**, nhập `release_tag` (ví dụ `v1.0.1`) rồi bấm chạy.
+3. Workflow build, chạy test, tạo tag và đưa `VniTyping.exe` lên trang **Releases**.
+
+Push một tag `v*` từ máy cũng cho kết quả tương tự.
 
 ### Bộ test dùng chung
 

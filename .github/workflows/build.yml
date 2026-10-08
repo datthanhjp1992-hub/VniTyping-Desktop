@@ -6,6 +6,11 @@ on:
     tags: ['v*']
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tạo bản phát hành với tag này (ví dụ v1.0.1). Để trống nếu chỉ build.'
+        required: false
+        default: ''
 
 permissions:
   contents: write   # để đưa exe lên trang Releases khi tạo tag v*
@@ -28,9 +33,14 @@ jobs:
           path: dist/VniTyping.exe
           if-no-files-found: error
 
-      - name: Đưa exe lên Releases (khi tạo tag v*)
-        if: startsWith(github.ref, 'refs/tags/v')
+      # Phát hành khi push tag v*, hoặc khi chạy tay (Run workflow) có nhập release_tag.
+      # Với cách chạy tay, tag được tạo ngay trên GitHub tại commit vừa build.
+      - name: Đưa exe lên Releases
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.release_tag || github.ref_name }}
+          name: VniTyping ${{ inputs.release_tag || github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          body_path: CHANGELOG.md
           files: dist/VniTyping.exe
-          generate_release_notes: true
